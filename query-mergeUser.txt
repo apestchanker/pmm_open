@@ -1,0 +1,12 @@
+{variables: {where: {id: "alex@valueorwaste.co"},…},…}
+query: "mutation ($where: _UserKeys!, $data: _UserCreate!) {\n  MergeUser(where: $where, data: $data) {\n    id\n    __typename\n  }\n}"
+variables: {where: {id: "alex@valueorwaste.co"},…}
+data: {username: "alex@valueorwaste.co", email: "alex@valueorwaste.co",…}
+email: "alex@valueorwaste.co"
+id: "alex@valueorwaste.co"
+isActive: true
+memberSince: "2022-06-24T19:49:09.207-03:00"
+password: ""
+username: "alex@valueorwaste.co"
+where: {id: "alex@valueorwaste.co"}
+id: "alex@valueorwaste.co"

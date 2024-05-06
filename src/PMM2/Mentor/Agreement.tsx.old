@@ -1,0 +1,200 @@
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Button,
+  FormControl,
+  InputAdornment,
+  MenuItem,
+  OutlinedInput,
+  Paper,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import React, { useState } from 'react';
+import { useTheme } from '@mui/material/styles';
+import { Proposal } from 'Types';
+
+interface AgreementI {
+  proposal: Proposal;
+}
+
+const Agreement = ({ proposal }: AgreementI) => {
+  const [expanded, setExpanded] = React.useState<string | false>('panel1');
+  console.log(proposal, 'mentor proposal');
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints['down']('md'));
+  const isXs = useMediaQuery(theme.breakpoints['only']('xs'));
+  const isMd = useMediaQuery(theme.breakpoints['only']('md'));
+
+  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
+  const [selectValues, setSelectValues] = React.useState({
+    payment: '',
+    quoteMentor: '',
+  });
+
+  const handleSelectChange = (event: SelectChangeEvent) => {
+    setSelectValues({ ...selectValues, [event.target.name]: event.target.value });
+  };
+
+  const [accepted, setAccepted] = useState(false);
+  const acceptAgreement = () => {
+    accepted ? setAccepted(false) : setAccepted(true);
+  };
+  return (
+    <Paper
+      elevation={4}
+      sx={{
+        borderRadius: '20px',
+        overflow: 'hidden',
+        mb: '50px',
+      }}
+    >
+      <Accordion defaultExpanded expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1bh-content" id="panel1bh-header">
+          <Typography sx={{ width: '33%', flexShrink: 0 }} fontFamily="Roboto" fontSize={'16px'} fontWeight={700} lineHeight={'18.75px'}>
+            Agreement
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Box p={isMobile ? 'none' : '50px 83px 0 83px'}>
+            <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'} mb={'48px'} flexWrap="wrap">
+              <Box display={'flex'} alignItems={'center'} flexWrap="wrap">
+                <Typography fontFamily="Roboto" fontSize={'16px'} fontWeight={700} lineHeight={'16px'} letterSpacing={'0.4px'} mr={'4px'}>
+                  Mentor:
+                </Typography>
+
+                <Typography fontFamily="Roboto" fontSize={'16px'} fontWeight={400} lineHeight={'18.75px'} letterSpacing={'0.4px'}>
+                  {proposal.relatedContracts[0].mentor.username}
+                </Typography>
+              </Box>
+              <Box display={'flex'} alignItems={'center'} flexWrap="wrap">
+                <Typography fontFamily="Roboto" fontSize={'16px'} fontWeight={700} lineHeight={'16px'} letterSpacing={'0.4px'} mr={'4px'}>
+                  Payment:
+                </Typography>
+                <FormControl sx={{ minWidth: isMd ? 'auto' : '275px', mr: '26px' }} size="small">
+                  <Select name="payment" value={selectValues.payment} onChange={handleSelectChange} displayEmpty>
+                    <MenuItem value="">
+                      <em>None</em>
+                    </MenuItem>
+                    <MenuItem value="conditional-payment-if-funded">Conditional payment if funded</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <OutlinedInput
+                  startAdornment={<InputAdornment position="start">$</InputAdornment>}
+                  sx={{ minWidth: isMd ? 'auto' : '275px' }}
+                  size="small"
+                ></OutlinedInput>
+              </Box>
+            </Box>
+            <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'} flexWrap="wrap">
+              <Box display={'flex'} alignItems={'center'} flexWrap="wrap">
+                <Typography fontFamily="Roboto" fontSize={'16px'} fontWeight={700} lineHeight={'16px'} letterSpacing={'0.4px'} mr={'4px'}>
+                  Proposer:
+                </Typography>
+
+                <Typography fontFamily="Roboto" fontSize={'16px'} fontWeight={400} lineHeight={'18.75px'} letterSpacing={'0.4px'}>
+                  {proposal.proposedBy.username}
+                </Typography>
+              </Box>
+            </Box>
+            <Box>
+              <Typography
+                fontFamily="Roboto"
+                fontSize={'16px'}
+                fontWeight={700}
+                lineHeight={'16px'}
+                letterSpacing={'0.4px'}
+                mt={'24px'}
+                mb={'8px'}
+              >
+                Responsibilities:
+              </Typography>
+              <TextField
+                multiline
+                rows={6}
+                fullWidth
+                sx={{
+                  borderRadius: '20px',
+                }}
+                variant={'outlined'}
+              ></TextField>
+            </Box>
+            <Box
+              display={!accepted ? 'flex' : 'none'}
+              className="buttons-container"
+              mt={'55px'}
+              justifyContent={'center'}
+              alignItems={'center'}
+              flexWrap="wrap"
+            >
+              <Button
+                variant="contained"
+                color="secondary"
+                sx={{
+                  width: '175px',
+                  height: '36px',
+                  mr: isXs ? 'none' : '70px',
+                  mb: !isXs ? 'none' : '10px',
+                }}
+                onClick={acceptAgreement}
+              >
+                <Typography fontFamily={'Roboto'} fontWeight={500} fontSize={'14px'} lineHeight={'16px'} letterSpacing={'1.25px'}>
+                  accept
+                </Typography>
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                sx={{
+                  width: '175px',
+                  height: '36px',
+                }}
+                onClick={acceptAgreement}
+              >
+                <Typography fontFamily={'Roboto'} fontWeight={500} fontSize={'14px'} lineHeight={'16px'} letterSpacing={'1.25px'}>
+                  reject
+                </Typography>
+              </Button>
+            </Box>
+            <Box
+              display={accepted ? 'flex' : 'none'}
+              className="agreement-accepted"
+              mt={'55px'}
+              justifyContent={'center'}
+              alignItems={'center'}
+              onClick={acceptAgreement}
+              flexWrap="wrap"
+            >
+              <CheckCircleIcon
+                color="success"
+                sx={{
+                  fontSize: '75px',
+                }}
+              />
+              <Box>
+                <Typography fontFamily={'Roboto'} fontWeight={500} fontSize={'14px'} lineHeight={'16px'} letterSpacing={'1.25px'}>
+                  AGREEMENT ACCEPTED <br />
+                  MON 14NOV22 10:05 AM UTC
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </AccordionDetails>
+      </Accordion>
+    </Paper>
+  );
+};
+
+export default Agreement;

@@ -1,0 +1,613 @@
+ interface Attachment {
+    filename: String!
+    url: String!
+  }
+
+type Attachment{
+    id: ID! 
+    filename: String!
+    url: String!
+    contentType: String!
+  }
+
+type Mutation {
+    MergeImage(filename: String!, url: String!, contentType: String!): PDF
+      @cypher(
+        statement: """
+        MERGE (i:Attachement {filename: $filename, url: $url, contentType: $contentType})
+        ON CREATE SET i.id=apoc.create.uuid()
+        RETURN i
+        """
+      )
+  }
+
+  type PDF {
+    id: ID! 
+    filename: String!
+    url: String!
+  }
+
+  type Mutation {
+    MergePDF(filename: String!, url: String!): PDF
+      @cypher(
+        statement: """
+        MERGE (p:PDF {filename: $filename, url: $url})
+        ON CREATE SET p.id=apoc.create.uuid()
+        RETURN p
+        """
+      )
+  }
+
+type Challenge {
+    id: ID!
+    title: String!
+    fund: Int!
+    proposals: [Proposal!]! @relation(name: "IN_CHALLENGE", direction: OUT)
+  }
+
+  
+enum UserContactType {
+    email
+    telephone
+    telegram
+    discord
+  }
+
+  type Proposal {
+    id: ID! 
+    title: String! # max 35
+    problem: String! # max 35
+    solution: String! #max 280
+    descriptionOfSolution: String!
+    howAddressesChallenge: String!
+    mainChallengesOrRisks: String!
+    inChallenge: Challenge @relation(name: "IN_CHALLENGE", direction: IN)
+    fundingStatus: FundingStatus!
+      @relation(name: "HAS_FUNDING_STATUS", direction: OUT)
+    relevantExperience: String!
+    repo: String
+    isTemplate: Boolean
+    detailedPlan: String!
+    detailedBudget: String!
+    teamRequired: String!
+    continuationOrNew: String!
+    sDGRating: String
+    requestedFunds: Int
+    describedByInterests: [Interest!]!
+      @relation(name: "DESCRIBES", direction: OUT)
+    proposedBy: User!
+      @relation(name: "PROPOSES", direction: IN)
+    attachments: [Attachment!]!
+      @relation(name: "SUPPORTS_WITH_DOC", direction: OUT)
+    status: ProposalStatus
+      @relation(
+        name: "HAS_PROPOSAL_STATUS"
+        direction: OUT
+      )
+    relatedContracts: [Contract!]!
+      @relation(name: "CONTRACT_RELATED_TO", direction: OUT)
+    ratings: [ProposalRating!]!
+      @relation(
+        name: "HAS_PROPOSAL_RATING"
+        direction: IN
+      )
+  }
+
+  type ProposalRating {
+    id: ID! 
+    score: Int!
+    rates: [Proposal!]!
+      @relation(
+        name: "HAS_PROPOSAL_RATING"
+        direction: OUT
+      )
+  }
+
+  type ProposalStatus {
+    id: ID! 
+    type: String!
+    proposals: [Proposal!]!
+      @relation(
+        name: "HAS_PROPOSAL_STATUS"
+        direction: IN
+      )
+  }
+
+  type FundingStatus {
+    id: ID!
+    name: String!
+    value: Int!
+    proposals: [Proposal!]!
+      @relation(name: "HAS_FUNDING_STATUS", direction: IN)
+  }
+
+  type Interest {
+    id: ID!
+    name: String!
+    users: [User!]! @relation(name: "HAS_INTEREST", direction: IN)
+    proposals: [Proposal!]! @relation(name: "DESCRIBES", direction: IN)
+  }
+
+  type Language {
+    id: ID!
+    name: String!
+    users: [User!]!
+      @relation(name: "SPEAKS", direction: IN)
+  }
+
+  type Contact {
+    id: ID! 
+    user: [User!]! @relation(name: "CONTACTED_VIA", direction: IN)
+    contact: String!
+    type: UserContactType!
+  }
+
+  type Contract {
+    id: ID! 
+    terms: String!
+    relatedProposal: Proposal
+      @relation(name: "CONTRACT_RELATED_TO", direction: IN)
+    mentor: User @relation(name: "MENTORING", direction: IN)
+    proposer: User! @relation(name: "PROPOSING", direction: IN)
+    status: String!
+    date: DateTime!
+  }
+
+  input ContractInput {
+    mentor: ID!
+    proposer: ID!
+    forProposal: ID!
+    terms: String!
+    status: String!
+    date: DateTime!
+  }
+
+  type Mutation {
+    CreateOrUpdateContract(inputs: [ContractInput!]!): [Contract!]!
+      @cypher(
+        statement: """
+        UNWIND $inputs as input
+        MATCH (u1:User {id: input.mentor}), (u2:User {id: input.proposer}), (p:Proposal {id: input.forProposal})
+        MERGE (u2)-[x:PROPOSING]->(c:Contract {terms:' '})<-[v:MENTORING]-(u1)
+        ON CREATE SET c.id = apoc.create.uuid(), c.terms=input.terms, c.oldTerms='', x.active=TRUE, v.active=TRUE, c.status=input.status, c.date=input.date
+        WITH x,c,v,p,input MERGE (c)<-[:CONTRACT_RELATED_TO]-(p)
+        WITH x,v,c,input
+          CALL apoc.do.when(x.active OR v.active,
+            'RETURN c as contract',
+            'SET c.oldTerms=c.terms, c.terms=input.terms RETURN c as contract',
+            {x:x, v:v, c:c, input:input}) YIELD value
+        RETURN value.contract
+        """
+      )
+
+    ActivateExpect(proposer: ID!, contract: ID!): Contract
+      @cypher(
+        statement: """
+        MATCH (:User {id: $proposer})-[x:PROPOSING]->(:Contract {id: $contract})
+        SET x.active = TRUE
+        """
+      )
+
+    ActivateProvides(mentor: ID!, contract: ID!): Contract
+      @cypher(
+        statement: """
+        MATCH (:User {id: $mentor})-[v:MENTORING]->(:Contract {id: $contract})
+        SET v.active = TRUE
+        """
+      )
+
+    DeactivateProposerExpect(
+      proposer: ID!
+      contract: ID!
+    ): Contract
+      @cypher(
+        statement: """
+        MATCH (:Contract {id: $contract})<-[x:PROPOSING]-(:User {id: $proposer})
+        SET x.active=FALSE
+        RETURN c
+        """
+      )
+
+    DeactivateMentorProvides(
+      mentor: ID!
+      contract: ID!
+    ): Contract
+      @cypher(
+        statement: """
+        MATCH (:Contract {id: $contract})<-[v:MENTORING]-(:User {id: $mentor})
+        SET v.active=FALSE
+        RETURN c
+        """
+      )
+  }
+
+  type Mutation {
+    SetMentorLabel(id: ID!): User
+      @cypher(
+        statement: """
+        MATCH (u:User {id:$id})
+        SET u:Mentor
+        RETURN u
+        """
+      )
+    RemoveMentorLabel(id: ID!): User
+      @cypher(
+        statement: """
+        MATCH (u:User {id:$id})
+        REMOVE u:Mentor
+        RETURN u
+        """
+      )
+  }
+
+  type Message {
+    id: ID!
+    on: DateTime!
+    text: String!
+    read: Boolean!
+    sentBy: User! @relation(name: "SENT_BY", direction: IN)
+    sentTo: User! @relation(name: "SENT_TO", direction: OUT)
+    deleted: Boolean
+  }
+
+  input CreateMessageInput {
+    toUsername: String!
+    fromUsername: String!
+    text: String!
+    read: Boolean!
+  }
+
+  type Mutation {
+    CreateMessage(input: [CreateMessageInput!]!): [Message!]!
+      @cypher(
+        statement: """
+        unwind $input AS message
+        MATCH (uTo:User {username: message.toUsername})
+        MATCH (uFrom:User {username: message.fromUsername})
+        CREATE (uTo)<-[:SENT_TO {on:datetime()}]-(m:Message {read: message.read, text:message.text, id:apoc.create.uuid(), on:datetime()})<-[:SENT_BY]-(uFrom)
+        RETURN m
+        """
+      )
+    
+  }
+
+type Role {
+    id: ID! 
+    name: String!
+    users: [User!]!
+      @relation(name: "HAS_ROLE", direction: IN)
+  }
+
+  type Timezone {
+    id: ID! 
+    name: String!
+    usersInZone: [User!]! @relation(name: "IN_ZONE", direction: IN)
+  }
+
+  type User {
+    id: ID! 
+    username: String!
+    password: String!
+    email: String!
+    languages: [Language!]!
+      @relation(name: "SPEAKS", direction: OUT)
+    describedByAttributes: [UserProfileAttribute!]!
+      @relation(name: "DESCRIBES_USER", direction: OUT)
+    roles: [Role!]!
+      @relation(name: "HAS_ROLE", direction: OUT)
+    labels: [String!]!
+      @cypher(
+        statement: """
+        MATCH (this)
+        RETURN labels(this)
+        """
+      )
+    hasnotification: [UserNotification!]
+      @relation(name: "HAS_NOTIFICATION", direction: OUT)
+
+    preferences: [UserPreference!]!
+      @relation(name: "PREFERS", direction: OUT)
+    proposals: [Proposal!]!
+      @relation(name: "PROPOSES", direction: OUT)
+    contracted: [User!]!
+      @relation(name: "PROPOSING", direction: OUT)
+    contractedBy: [User!]!
+      @relation(name: "MENTORING", direction: OUT)
+    interestedIn: [Interest!]!
+      @relation(
+        name: "HAS_INTEREST"
+        direction: OUT
+      )
+    proposalsWithSimilarInterests: [Proposal!]!
+      @cypher(
+        statement: """
+        MATCH (this)-[:HAS_INTEREST]->(i:Interest)<-[r:DESCRIBES]-(p:Proposal)
+        RETURN p, count(r) as sharedInt ORDER BY sharedInt DESC
+        """
+      )
+    mentorsWithSimilarInterests: [User!]!
+      @cypher(
+        statement: """
+        MATCH (this)-[:HAS_INTEREST]->(i:Interest)<-[r:HAS_INTEREST]-(o:User)-[:HAS_ROLE]->(:Role {name:'Mentor'})
+        RETURN o, count(r) as sharedInt ORDER BY sharedInt DESC
+        """
+      )
+    proposersWithSimilarInterests: [User!]!
+      @cypher(
+        statement: """
+        MATCH (this)-[:HAS_INTEREST]->(:Interest)<-[r:HAS_INTEREST]-(o:User)-[:HAS_ROLE]->(:Role {name:'Proposer'})
+        RETURN o, count(r) as sharedInt ORDER BY sharedInt DESC
+        """
+      )
+    profile: String
+    bio: String
+    inZone: Timezone @relation(name: "IN_ZONE", direction: OUT)
+    contacts: [Contact!]!
+      @relation(
+        name: "CONTACTED_VIA"
+        direction: OUT
+      )
+    URLs: [String]
+    rating: [UserRating!]!
+      @relation(
+        name: "HAS_USER_RATING"
+        direction: IN
+      )
+    hasRatedUsers: [UserRating!]!
+      @relation(
+        name: "RATED_USER"
+        direction: OUT
+      )
+    hasRatedProposals: [ProposalRating!]!
+      @relation(
+        name: "RATED_PROPOSAL"
+        direction: OUT
+      )
+    sentMessages: [Message!]! @relation(name: "SENT_BY", direction: OUT)
+    receivedMessages: [Message!]! @relation(name: "SENT_TO", direction: IN)
+    avgScore: Float
+      @cypher(
+        statement: """
+        MATCH (this)-[:HAS_USER_RATING]-(r)
+        WHERE EXISTS(r.score)
+        WITH this, avg(r.score) as avgScore
+        RETURN avgScore
+        """
+      )
+  }
+
+  type UserRating {
+    id: ID! 
+    score: Int!
+    feedback: String!
+    sentBy: String!
+    sentTo: String!
+    sentOn: DateTime!
+  }
+
+  type UserProfileAttribute {
+    id: ID! 
+    name: String!
+    describesUser: [User!]! @relation(name: "DESCRIBES_USER", direction: IN)
+  }
+
+  type UserNotification{
+	  id: ID! 
+	  read: Boolean!
+	  message: String!
+	  createdOn: DateTime!
+	  link: String!
+    hasnotification: [User!]! @relation(name: "HAS_NOTIFICATION", direction: IN)
+  }
+
+input UpdateUserNotificationInput{
+	  id: ID!
+	  notifications: [ID!]!
+  }
+
+  type UserPreference {
+    id: ID! 
+    type: String!
+    preferredByUser: [User!]! @relation(name: "PREFERS", direction: IN)
+  }
+
+  input UpdateUserTimezoneInput {
+    id: ID!
+    timeZoneId: ID!
+  }
+
+  input UpdateUserInterestsInput {
+    id: ID!
+    interests: [ID!]!
+  }
+
+  input UpdateUserProfileAttributesInput {
+    id: ID!
+    attributes: [ID!]!
+  }
+
+  input UpdateUserLanguagesInput {
+    id: ID!
+    languages: [ID!]!
+  }
+
+  input UpdateUserPreferencesInput {
+    id: ID!
+    preferences: [ID!]!
+  }
+
+  input ContactsInput {
+    type: String!
+    contact: String!
+  }
+  input AddUserContactsInput {
+    username: String!
+    contacts: [ContactsInput!]!
+  }
+
+  type Query {
+    SearchProposals(searchTerm: String!): [Proposal!]!
+      @cypher(
+        statement: """
+        MATCH (p:Proposal)
+        WHERE toLower(p.solution) CONTAINS toLower($searchTerm)
+        OR toLower(p.problem) CONTAINS toLower($searchTerm)
+        OR toLower(p.title) CONTAINS toLower($searchTerm)
+        OR toLower(p.description) CONTAINS toLower($searchTerm)
+        OR toLower(p.descriptionOfSolution) CONTAINS toLower($searchTerm)
+        OR toLower(p.mainChallengesOrRisks) CONTAINS toLower($searchTerm)
+        OR toLower(p.howAddressesChallenge) CONTAINS toLower($searchTerm)
+        OR toLower(p.relevantExperience) CONTAINS toLower($searchTerm)
+        OR toLower(p.detailedPlan) CONTAINS toLower($searchTerm)
+        OR toLower(p.teamRequired) CONTAINS toLower($searchTerm)
+        RETURN p
+        """
+      )
+  }
+
+  type Mutation {
+    UpdateProposal(
+      id: ID
+      title: String!
+      solution: String!
+      relevantExperience: String
+      repo: String
+      detailedPlan: String!
+      requestedFunds: Int = 0
+      userId: ID!
+    ): Proposal
+
+    AttachProposersToProposal(usernames: [String!]!, proposalId: ID!): Proposal
+      @cypher(
+        statement: """
+        UNWIND $usernames AS username
+        MATCH (u:User {username: username})
+        MATCH (p:Proposal {id: $proposalId})
+        MERGE (u)-[:PROPOSES {isPrimary: FALSE}]->(p)
+        RETURN p
+        """
+      )
+
+    RemoveProposersFromProposal(
+      usernames: [String!]!
+      proposalId: ID!
+    ): Proposal
+      @cypher(
+        statement: """
+        UNWIND $usernames AS username
+        MATCH (u:User {username: username})-[r:PROPOSES]->(p:Proposal {id: $proposalId})
+        WITH u,p,r CALL apoc.do.when (r.isPrimary, '', 'DELETE r', {r:r}) YIELD result
+        RETURN p
+        """
+      )
+
+    DeactivateProposal(proposalId: ID!, userId: ID!): Proposal
+      @cypher(
+        statement: """
+        MATCH (p:Proposal {id: $proposalId})
+        MATCH (u:User {id: $userId})
+        OPTIONAL MATCH (p)-[h:HAS_PROPOSAL_STATUS]->(s:ProposalStatus {type: "Active"})
+        WITH p,u,s, coalesce(h.passedHistoryStatus, '')+ ',' + timeStamp() + ':' AS past
+        CREATE (p)-[n:HAS_PROPOSAL_STATUS {changedStatusOn: dateTime(), }]
+        """
+      )
+  }
+
+  type Mutation {
+    SetProposerLabel(id: ID!): User
+      @cypher(
+        statement: """
+        MATCH (u:User {id:$id})
+        SET u:Proposer
+        RETURN u
+        """
+      )
+    RemoveProposerLabel(id: ID!): User
+      @cypher(
+        statement: """
+        MATCH (u:User {id:$id})
+        REMOVE u:Proposer
+        RETURN u
+        """
+      )
+  }
+
+  
+  type Query {
+    SearchUsers(searchTerm: String!): [User!]!
+      @cypher(
+        statement: """
+        MATCH (u:User)
+        WHERE toLower(u.username) CONTAINS toLower($searchTerm)
+        OR toLower(u.email) CONTAINS toLower($searchTerm)
+        OR toLower(u.profile) CONTAINS toLower($searchTerm)
+        OR toLower(u.bio) CONTAINS toLower($searchTerm)
+        RETURN u
+        """
+      )
+  }
+
+
+  type Mutation {
+    UpdateUserInfo(
+      id: ID!
+      username: String
+      bio: String
+      profile: String
+      URLs: [String]
+      email: String
+      contacts: [String]
+    ): User
+
+    AddUserContacts(inputs: [AddUserContactsInput!]!): [User]
+      @cypher(
+        statement: """
+        UNWIND $inputs as input
+        MATCH (u:User {username: input.username})
+        WITH u,input UNWIND input.contacts as contact
+        WITH u,contact MERGE (u)-[:CONTACTED_VIA]->(c:Contact {type: contact.type, contact: contact.contact})
+        ON CREATE SET c.id = apoc.create.uuid()
+        RETURN u
+        """
+      )
+
+    UpdateProfileAttributes(inputs: [UpdateUserProfileAttributesInput!]!): User
+      @cypher(
+        statement: """
+        UNWIND $inputs as input
+        MATCH (u:User {id:input.id}) OPTIONAL MATCH (u)-[d:DESCRIBES_USER]-(:UserProfileAttribute)
+        WITH input,u,d DELETE d
+        WITH input,u UNWIND input.attributes as attribute
+        with u,attribute MATCH (a:UserProfileAttribute {id:attribute})
+        MERGE (u)-[:DESCRIBES_USER]->(a)
+        RETURN u
+        """
+      )
+
+    UpdateNotifications (inputs: [UpdateUserNotificationInput!]!): User
+      @cypher(
+        statement: """
+        UNWIND $inputs as input
+        MATCH (u:User {id:input.id}) OPTIONAL MATCH (u)-[d:HAS_NOTIFICATION]-(:UserNotification)
+        WITH input,u,d DELETE d
+        WITH input,u UNWIND input.notifications as notification
+        with u,notification MATCH (a:UserNotification {id:notification})
+        MERGE (u)-[:HAS_NOTIFICATION]->(a)
+        RETURN u
+        """
+      )
+
+    UpdatePreferences(inputs: [UpdateUserPreferencesInput!]!): [User]
+      @cypher(
+        statement: """
+        UNWIND $inputs as input
+        MATCH (u:User {id:input.id}) OPTIONAL MATCH (u)-[p:PREFERS]-(:UserPreference)
+        WITH u,p,input UNWIND input.preferences as preference
+        WITH u,preference,p DELETE p
+        with u,preference MATCH (up:UserPreference {id:preference})
+        with u,up MERGE (u)-[:PREFERS]->(up)
+        RETURN u
+        """
+      )
+  }
+

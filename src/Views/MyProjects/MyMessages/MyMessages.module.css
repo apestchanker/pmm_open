@@ -1,0 +1,73 @@
+.container{
+  clear: both;
+  position: relative;
+}
+.arrow{
+  width: 12px;
+  height: 20px;
+  overflow: hidden;
+  position: relative;
+  float: left;
+  top: 6px;
+  right: -1px;
+}
+.arrowOuter {
+  width: 0;
+  height: 0;
+  border-right: 20px solid #000000;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.arrowInner{
+  width: 0;
+  height: 0;
+  border-right: 20px solid #ffffff;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  position: absolute;
+  top: 0;
+  left: 2px;
+}
+
+.messageBody{
+  float: left;
+  width: 300px;
+  height: auto;
+  border: 1px solid #CCC;
+  background-color: #ffffff;
+  border: 1px solid #000000;
+  padding: 6px 8px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -o-border-radius: 5px;
+  border-radius: 5px;
+}
+
+#messageBox::-webkit-scrollbar-track {
+    border: 1px solid transparent;
+    padding: 2px 0;
+    background-color: #aaaaaa;
+    /* border-radius: 10px; */
+  }
+  
+ #messageBox::-webkit-scrollbar {
+    width: 10px;
+    /* border-radius: 10px; */
+  }
+  
+  #messageBox::-webkit-scrollbar-thumb {
+    /* border-radius: 10px; */
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    background-color: #626262;
+    border: 1px solid rgb(59, 59, 59);
+  }
+
+  @media screen and (max-width: 768px) {
+    #messageBox::-webkit-scrollbar {
+      display: none;
+    }
+      
+  }

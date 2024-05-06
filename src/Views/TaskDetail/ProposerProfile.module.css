@@ -1,0 +1,21 @@
+.subtitles {
+  font-size: 16px !important;
+  font-weight: bold !important;
+  letter-spacing: 0.5px !important;
+  line-height: 16px !important;
+}
+
+.simpleText {
+  font-size: 16px !important;
+  font-weight: normal !important;
+  letter-spacing: 0.5px !important;
+  line-height: 16px !important;
+  margin-top: 25px !important;
+}
+
+.carouselContainer {
+  margin-bottom: 25px !important;
+  
+  position: relative;
+  justify-content: center;
+}

@@ -1,0 +1,121 @@
+:root {
+  --primaryBlue: #263560;
+  --primaryBlueHover: #2f4583;
+  --primaryGray: #adadad;
+  --primaryGrayHover: #8f8f8f;
+  --textDark: #36393f;
+  --unselectedText: #979797;
+  --normalShadow: 0px 4px 4px rgba(0, 0, 0, 0.4);
+  --inactiveGray: #d8d8d8;
+  --lightGray: #c4c4c4;
+  --bgGray: #e5e5e5;
+  --errorRed: rgb(211, 47, 47);
+  --linkBlue: #3E68FF;
+  --textField-bg: #d9d9d9;
+}
+html {
+  scrollbar-color: #626262 #aaaaaa;
+  /* scrollbar-width: thin; */
+  /* scrollbar-width: 10px;
+  scrollbar-shadow-color: rgba(0, 0, 0, 0.3);
+  scrollbar-gutter: 10px; */
+}
+
+.react-joyride__tooltip {
+  font-family: inherit;
+}
+.__floater {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.react-joyride__spotlight {
+  background-color: #ffffff73 !important;
+  mix-blend-mode: difference !important;
+}
+
+.swal2-popup {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.swal2-styled.swal2-confirm {
+  background-color: var(--primaryBlue);
+  color: #fff;
+  font-family: inherit;
+}
+.swal2-styled.swal2-confirm:hover {
+  background-color: var(--primaryBlueHover);
+}
+
+.MuiButton-containedPrimary {
+  background-color: var(--primaryBlue);
+  color: rgb(180, 0, 0);
+  text-transform: none;
+}
+
+.containedPrimary {
+  background-color: var(--primaryBlue);
+  color: rgb(180, 0, 0);
+  text-transform: none;
+}
+
+.MuiButton-containedPrimary:hover {
+  background-color: var(--primaryBlueHover) !important;
+}
+
+.tabHeader {
+  color: var(--unselectedText) !important;
+  font-size: 25px !important;
+  text-transform: none !important;
+}
+
+.Mui-selected {
+  color: var(--primaryBlue) !important;
+  font-weight: bold !important;
+}
+
+.MuiTabs-indicator {
+  background-color: var(--primaryBlue) !important;
+}
+
+.MuiTabs-flexContainer {
+  justify-content: flex-start !important;
+}
+
+body {
+  margin: 0 !important;
+}
+
+.social-signup-button {
+  width: 100%;
+  border-bottom: 1px solid gray;
+}
+.social-signup-button span {
+  width: 100%;
+  font-size: 18px;
+  font-weight: medium;
+}
+
+.linkTag {
+  color: black;
+  text-decoration: underline;
+}
+
+.linkTag:hover {
+  color: var(--primaryBlue);
+  text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+  .MuiTabs-flexContainer {
+    justify-content: center !important;
+  }
+  .tabHeader {
+    font-size: 24px !important;
+  }
+}
+
+@media (max-width: 500px) {
+  .tabHeader {
+    font-size: 16px !important;
+  }
+}

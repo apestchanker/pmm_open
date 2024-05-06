@@ -1,0 +1,115 @@
+#header {
+  background-color: #263560;
+  height: 80px;
+  justify-content: center;
+}
+
+.containerMain {
+  width: 90% !important;
+  max-width: none !important;
+}
+
+.inUpBtn {
+  width: 111px;
+  color: #fff !important;
+  border-color: #fff !important;
+  border-radius: 10px !important;
+  /* padding: 12px 20px !important; */
+  margin-left: 70px !important;
+  font-size: 18px !important;
+  font-weight: 300 !important;
+  text-transform: none !important;
+  cursor: pointer;
+  margin-bottom: 8px;
+  margin-top: 8px;
+}
+
+.links {
+  color: white;
+  text-decoration: none;
+  font-size: 20px;
+  margin-right: 20px;
+}
+
+.boldlinks {
+  color: white;
+  text-decoration: none;
+  font-size: 20px;
+  margin-right: 20px;
+  font-weight: bolder;
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.notificationBox {
+  margin: 10px;
+  position: relative;
+}
+
+.notificationModal {
+  position: absolute;
+  top: 27px;
+  left: -256px;
+  background-color: #fff;
+  max-height: 50vh;
+  overflow-y: auto;
+  border-radius: 4px;
+  animation: notificationAnimation 0.5s forwards;
+  z-index: 99999;
+}
+.eachNotif {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  padding: 10px;
+  position: relative;
+  height: 70px;
+  display: flex;
+  align-items: flex-start;
+}
+.eachNotif:hover {
+  transition: all 0.3s ease-in-out;
+  background-color: var(--bgGray);
+}
+
+@keyframes notificationAnimation {
+  0% {
+    opacity: 0;
+    transform: scale(1, 0.1) translateY(-320px);
+  }
+  100% {
+    transform: scale(1, 1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.notificationsContainer::-webkit-scrollbar-track {
+  border: 1px solid transparent;
+  background-color: #aaaaaa;
+  /* border-radius: 10px; */
+}
+
+.notificationsContainer::-webkit-scrollbar {
+  width: 10px;
+  /* border-radius: 10px; */
+}
+
+.notificationsContainer::-webkit-scrollbar-thumb {
+  /* border-radius: 10px; */
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: #626262;
+  border: 1px solid rgb(59, 59, 59);
+}
+
+@media (max-width: 768px) {
+  .inUpBtn {
+    width: auto !important;
+    margin-left: 0px !important;
+    margin-bottom: 8px !important;
+    margin-top: 8px !important;
+  }
+}

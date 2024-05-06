@@ -1,0 +1,30 @@
+
+  .talk-bubble {
+    position: relative;
+    width: 50%;
+    background-color: var(--primaryBlue);
+    align-self: flex-end;
+    border-radius: 10px;
+  }
+  .tri-right.right-top:after{
+    content: ' ';
+    position: absolute;
+    width: 0;
+    height: 0;
+    right: -8px;
+    left: auto;
+    top: 0px;
+    bottom: auto;
+    border: 10px solid;
+    border-color: var(--primaryBlue) transparent transparent transparent;
+  }
+  
+  /* talk bubble contents */
+  .talktext{
+    text-align: left;
+    padding: 0 5px
+  }
+  .talktext p{
+    -webkit-margin-before: 0em;
+    -webkit-margin-after: 0em;
+  }

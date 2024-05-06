@@ -1,0 +1,6 @@
+body{
+    scroll-behavior: smooth;
+}
+.bio {
+    padding-top: 0px !important;
+}
